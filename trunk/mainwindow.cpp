@@ -75,7 +75,7 @@ void MainWindow::dataChanged() {
         QList<QString> list = QString(fileNameList).split(QRegExp("\r\n"), QString::SkipEmptyParts);
         QByteArray msg;
         QDataStream dataStream(&msg, QIODevice::WriteOnly);
-        dataStream << "files";
+        dataStream << QString("files");
         QList<QByteArray> fileList;
         for (int i = 0; i < list.length(); ++i) {
             list[i].remove(0, QString("file://").length());
