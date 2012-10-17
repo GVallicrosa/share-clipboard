@@ -81,6 +81,7 @@ void MainWindow::dataChanged() {
             list[i].remove(0, QString("file://").length());
             list[i] = QUrl::fromPercentEncoding(list[i].toAscii());
             QFile file(list[i]);
+            file.open(QIODevice::ReadOnly);
             QByteArray fileContent = file.readAll();
             fileList.append(fileContent);
             file.close();
@@ -210,6 +211,7 @@ void MainWindow::receiveMessage(QByteArray msg) {
         for (int i = 0; i < fileContents.length(); i++) {
             QFile file(qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
             filePaths.append(QUrl::toPercentEncoding("file://" + qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i])));
+            file.open(QIODevice::WriteOnly);
             file.write(fileContents[i]);
             file.close();
         }
