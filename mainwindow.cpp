@@ -210,19 +210,38 @@ void MainWindow::receiveMessage(QByteArray msg) {
         QStringList filePaths;
         for (int i = 0; i < fileContents.length(); i++) {
             QFile file(qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
-            filePaths.append(QUrl::toPercentEncoding("file://" + qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i])));
+            filePaths.append("file://" + qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
             file.open(QIODevice::WriteOnly);
             file.write(fileContents[i]);
             file.close();
         }
         mMimeData = new QMimeData();
         // traverse through it and fill the clipboard in!
+        // We also want to replace all the (without file:// and \r\n) paths that are found in
+        QStringList fileNameListTruncated = QString(fileNameList).split("\r\n", QString::SkipEmptyParts);
+        QByteArray purePath;
+        // If more than one file copied, combine them with \n
+        if (fileNameListTruncated.length() > 1) {
+            // Don't forget to remove the last new line
+            purePath = fileNameListTruncated.join("\n").toAscii();
+        } else {
+            purePath = fileNameListTruncated.join("").toAscii();
+        }
         QMap<QString, QByteArray>::Iterator itr = content.begin();
         for (; itr != content.end(); itr++) {
+            QString todoRemove = itr.key();
+            QByteArray todoRemove2 = itr.value();
             if (itr.key() == QString("text/uri-list")) {
                 // Append files!
 #ifdef Q_WS_X11
                 mMimeData->setData(itr.key(), filePaths.join("\r\n").toAscii());
+#endif
+            } else if (((QByteArray) itr.value()).contains(purePath)) {
+#ifdef Q_WS_X11
+                // Replace the path and put it into clipboard
+                QByteArray tempByteArray = itr.value();
+                tempByteArray.replace(purePath, filePaths.join("\n").toAscii());
+                mMimeData->setData(itr.key(), tempByteArray);
 #endif
             } else {
                 mMimeData->setData(itr.key(), itr.value());
