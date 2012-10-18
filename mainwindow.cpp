@@ -9,6 +9,8 @@
 #include <QDir>
 #include <QUrl>
 
+#include "imagemessage.h"
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,6 +30,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     mClipboard = qApp->clipboard();
+    // TODO REMOVE
+    QMimeData *mimeData = new QMimeData();
+    QList<QUrl> list;
+    list.append(QUrl::fromLocalFile("/home/ozan/Desktop/cagri.jpg"));
+    mimeData->setUrls(list);
+
+    for (int i = 0; i < mimeData->formats().length(); i++) {
+        qWarning() << mimeData->formats().at(i) << mimeData->data(mimeData->formats().at(i));
+    }
+    mClipboard->setMimeData(mimeData);
+
+    // UP TO HERE
 
     mIcon = new QIcon(":/icons/icon_partners-325.png");
     if (!(QFile::exists("icon.png"))) {
@@ -68,7 +82,7 @@ void MainWindow::dataChanged() {
         QDataStream dataStream(&msg, QIODevice::WriteOnly);
         dataStream << QString("image") <<  image;
         emit sendMessage(msg);
-    } else if (mData->hasFormat("text/uri-list")) {
+    } else if (mData->hasFormat("text/uri-list") && mData->data("text/uri-list").contains(QByteArray("file://"))) {
         // This is a list of files
         // Read the files first! Send the content
         QByteArray fileNameList = mData->data("text/uri-list");
@@ -204,6 +218,12 @@ void MainWindow::receiveMessage(QByteArray msg) {
         QDir dir;
         if (!dir.exists(".temp")) {
             dir.mkdir(".temp");
+        } else {
+            dir.cd(".temp");
+            QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+            foreach (QFileInfo filename, files) {
+                dir.remove(filename.fileName());
+            }
         }
 
         // Have a list of file paths

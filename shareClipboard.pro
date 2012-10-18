@@ -15,10 +15,23 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    messagetransceiver.cpp
+    messagetransceiver.cpp \
+    basemessage.cpp \
+    imagemessage.cpp \
+    filemessage.cpp \
+    protocolhandler.cpp \
+    clipboardclient.cpp \
+    clipboardsession.cpp
 
 HEADERS  += mainwindow.h \
-    messagetransceiver.h
+    messagetransceiver.h \
+    basemessage.h \
+    imagemessage.h \
+    filemessage.h \
+    globals.h \
+    protocolhandler.h \
+    clipboardclient.h \
+    clipboardsession.h
 
 FORMS    += mainwindow.ui
 
