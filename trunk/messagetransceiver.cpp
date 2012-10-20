@@ -73,7 +73,6 @@ MessageTransceiver::~MessageTransceiver() {
     }
 }
 
-Q_WS_X11
 void MessageTransceiver::sessionOpened()
 {
     if (!mIsClient) {
@@ -131,9 +130,11 @@ void MessageTransceiver::sessionOpened()
 }
 
 void MessageTransceiver::newConnection() {
+    
     mTcpSocket = mTcpServer->nextPendingConnection();
     emit connected();
     connect(mTcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    connect(mTcpSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
 }
 
 void MessageTransceiver::connectTo(QString ipAddress, QString portNumber) {
@@ -169,4 +170,12 @@ void MessageTransceiver::readyRead() {
     in >> msg;
     mBlockSize = 0;
     emit receiveMessage(msg);
+}
+
+void MessageTransceiver::disconnected() {
+    if (mTcpSocket) {
+        disconnect(mTcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+        disconnect(mTcpSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    }
+    // TODO emit a message that the user is disconnected
 }

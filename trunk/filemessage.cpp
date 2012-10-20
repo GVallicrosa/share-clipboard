@@ -2,6 +2,7 @@
 
 FileMessage::FileMessage()
 {
+    setType(MESSAGE_FILE);
 }
 
 

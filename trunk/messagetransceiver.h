@@ -20,6 +20,10 @@ class MessageTransceiver : public QObject
 public:
     explicit MessageTransceiver(QObject *parent = 0, bool isClient=false);
     ~MessageTransceiver();
+    
+    inline QMap<QString, QString> getPeerIps() {
+        return mPeers;
+    }
 
 protected:
     void startBroadcasting();
@@ -35,6 +39,7 @@ public slots:
     void newConnection();
     void connectTo(QString ipAddress, QString portNumber);
     void readyRead();
+    void disconnected();
 
 private:
     QTcpServer *mTcpServer;
@@ -43,6 +48,8 @@ private:
     QByteArray mReceivedData;
     quint64 mBlockSize;
     bool mIsClient;
+
+    QMap<QString, QString> mPeers;
 };
 
 #endif // MESSAGETRANSCEIVER_H

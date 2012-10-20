@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <QMimeData>
 #include "messagetransceiver.h"
+#include "clipboardclient.h"
+#include "protocolhandler.h"
+#include "notificationwindow.h"
 #include <QSystemTrayIcon>
 #include <QKeyEvent>
 
@@ -22,6 +25,7 @@ public:
 signals:
     void connectTo(QString ipAddress, QString portNumber);
     void sendMessage(QByteArray msg);
+    void showMessage(QString title, QString description, quint32 msecs);
 
 public slots:
     void dataChanged();
@@ -38,6 +42,8 @@ private:
     Ui::MainWindow *ui;
     QClipboard *mClipboard;
     MessageTransceiver *mMessageTransceiver;
+    ProtocolHandler *mProtocolHandler;
+    ClipboardClient *mClipboardClient;
     bool mIsClient;
     QString mLastContent;
     QMimeData *mMimeData;
@@ -46,6 +52,7 @@ private:
     QSystemTrayIcon *mTray;
     QIcon *mIcon;
     QString mAppPath;
+    NotificationWindow *mNotify;
 
 };
 
