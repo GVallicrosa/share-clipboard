@@ -8,41 +8,37 @@
 #include <QxtGlobalShortcut>
 #include <QDir>
 #include <QUrl>
+#include <QDeclarativeView>
 
 #include "imagemessage.h"
-
+#include "filemessage.h"
+#include "custommessage.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    mLastContent = "";
-    mMimeData = new QMimeData();
-
-    mIsClient = false;
-    mMessageTransceiver = new MessageTransceiver(this, true);
+    
+    mMessageTransceiver = new MessageTransceiver(this,true);
+    mProtocolHandler = new ProtocolHandler();
+    mClipboardClient = new ClipboardClient();
+    mNotify = new NotificationWindow();
+    
+    mProtocolHandler->setMessageTransceiver(mMessageTransceiver);
+    mClipboardClient->setProtocolHandler(mProtocolHandler);
+    mClipboardClient->setClipboard(qApp->clipboard());
+    
+    // UI to MessageTransceiver connection
     connect(this, SIGNAL(connectTo(QString,QString)), mMessageTransceiver, SLOT(connectTo(QString,QString)));
-    connect(mMessageTransceiver, SIGNAL(receiveMessage(QByteArray)), this, SLOT(receiveMessage(QByteArray)));
     connect(mMessageTransceiver, SIGNAL(connected()), this, SLOT(connected()));
-    connect(this, SIGNAL(sendMessage(QByteArray)), mMessageTransceiver, SLOT(sendMessage(QByteArray)));
+    
+    connect(mClipboardClient, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
+    connect(this, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
+    
 
-
-    mClipboard = qApp->clipboard();
-    // TODO REMOVE
-    QMimeData *mimeData = new QMimeData();
-    QList<QUrl> list;
-    list.append(QUrl::fromLocalFile("/home/ozan/Desktop/cagri.jpg"));
-    mimeData->setUrls(list);
-
-    for (int i = 0; i < mimeData->formats().length(); i++) {
-        qWarning() << mimeData->formats().at(i) << mimeData->data(mimeData->formats().at(i));
-    }
-    mClipboard->setMimeData(mimeData);
-
-    // UP TO HERE
-
+    
+    // Save the icon if it does not exist
     mIcon = new QIcon(":/icons/icon_partners-325.png");
     if (!(QFile::exists("icon.png"))) {
         qWarning() << "The file does not exist!" ;
@@ -54,23 +50,20 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     #ifdef Q_WS_WIN
-        mTray = new QSystemTrayIcon(this);
+        mTray = new QSystemTrayIcon(*mIcon,this);
         mTray->show();
-        mTray->setIcon(*mIcon);
     #endif
 
-        mAppPath = qApp->applicationDirPath();
+    mAppPath = qApp->applicationDirPath();
 
-        QxtGlobalShortcut* shortcut = new QxtGlobalShortcut(this);
-        connect(shortcut, SIGNAL(activated()), this, SLOT(dataChanged()));
-        shortcut->setShortcut(QKeySequence("Ctrl+Shift+C"));
-
+    QxtGlobalShortcut* shortcut = new QxtGlobalShortcut(this);
+    connect(shortcut, SIGNAL(activated()), mClipboardClient, SLOT(sendClipboard()));
+    shortcut->setShortcut(QKeySequence("Ctrl+Shift+C"));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete mMimeData;
 }
 
 void MainWindow::dataChanged() {
@@ -163,13 +156,14 @@ void MainWindow::on_becomeServerBtn_clicked()
         ui->portNumberEdit->setEnabled(false);
         ui->becomeServerBtn->setText("Become Client");
         setHidden(true);
-    #ifdef Q_WS_X11
-        QString cmd = QString("notify-send \"Share Clipboard\" \"You have successfully become server\" -i " + qApp->applicationDirPath() + "/icon.png");
-        system(cmd.toStdString().c_str());
-    #endif
-    #ifdef Q_WS_WIN
-        mTray->showMessage("Share Clipboard", "You have successfully become server!");
-    #endif
+        emit showMessage("Share Clipboard", "You have successfully become server", 2000);
+//    #ifdef Q_WS_X11
+//        QString cmd = QString("notify-send \"Share Clipboard\" \"You have successfully become server\" -i " + qApp->applicationDirPath() + "/icon.png");
+//        system(cmd.toStdString().c_str());
+//    #endif
+//    #ifdef Q_WS_WIN
+//        mTray->showMessage("Share Clipboard", "You have successfully become server!");
+//    #endif
     } else {
         mMessageTransceiver = new MessageTransceiver(this, true);
         ui->ipAddressEdit->setEnabled(true);

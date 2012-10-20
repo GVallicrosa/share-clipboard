@@ -22,7 +22,6 @@ public:
 
 protected:
     QList<QUrl> mFilePaths;
-    QFile mFile;
 };
 
 #endif // FILEMESSAGE_H

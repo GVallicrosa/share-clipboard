@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += network
+QT       += declarative network
 CONFIG  += qxt
 QXT += core gui
 
@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     filemessage.cpp \
     protocolhandler.cpp \
     clipboardclient.cpp \
-    clipboardsession.cpp
+    custommessage.cpp \
+    notificationwindow.cpp
 
 HEADERS  += mainwindow.h \
     messagetransceiver.h \
@@ -31,11 +32,15 @@ HEADERS  += mainwindow.h \
     globals.h \
     protocolhandler.h \
     clipboardclient.h \
-    clipboardsession.h
+    custommessage.h \
+    notificationwindow.h
 
 FORMS    += mainwindow.ui
 
 RESOURCES += \
     resources.qrc
+
+OTHER_FILES += \
+    NotificationQml.qml
 
 

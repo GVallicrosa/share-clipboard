@@ -14,7 +14,7 @@ public:
     void deserialize(const QByteArray & message);
 
     void setImage(const QImage &img);
-    const QImage & getImage();
+    const QImage &getImage() const;
 protected:
     QImage mImage;
 

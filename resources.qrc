@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>icons/icon_partners-325.png</file>
+        <file>NotificationQml.qml</file>
     </qresource>
 </RCC>
