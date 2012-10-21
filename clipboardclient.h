@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QClipboard>
 #include <QCoreApplication>
+#include <QByteArray>
 
 #include "custommessage.h"
 #include "imagemessage.h"

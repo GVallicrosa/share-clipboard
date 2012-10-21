@@ -32,7 +32,13 @@ void ClipboardClient::receiveImageMessage(const ImageMessage &imageMessage) {
 void ClipboardClient::receiveFileMessage(const FileMessage &fileMessage) {
 
     if (mClipboard) {
-        qWarning() << fileMessage.getFilePaths();
+        QMimeData *mimeData = new QMimeData();
+        QMap<QString, QByteArray> mimeContent = fileMessage.getMimeContent();
+        QMap<QString, QByteArray>::iterator itr;
+        for (itr = mimeContent.begin(); itr != mimeContent.end(); itr++) {
+            mimeData->setData(itr.key(),itr.value());
+        }
+        mClipboard->setMimeData(mimeData);
         emit showMessage("New message arrived", "Received new file(s)", 2000);
     }
 }

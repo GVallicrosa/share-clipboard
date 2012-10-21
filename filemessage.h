@@ -4,6 +4,7 @@
 #include <QUrl>
 #include <QFile>
 #include <QList>
+#include <QApplication>
 
 #include "basemessage.h"
 
