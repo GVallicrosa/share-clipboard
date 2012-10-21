@@ -18,8 +18,12 @@ QByteArray FileMessage::serialize() {
     int length = mFilePaths.length();
     for (int i = 0; i < length; i++) {
         QString filePath = mFilePaths[i].toString();
-        if (filePath.contains("file://")) {
+        if (filePath.contains("file:///")) {
+#ifdef Q_WS_X11
             filePath = filePath.remove("file://");
+#else
+            filePath = filePath.remove("file:///");
+#endif
         }
         QFile file(filePath);
         if (!file.open(QFile::ReadOnly)) {
@@ -34,7 +38,12 @@ QByteArray FileMessage::serialize() {
     QByteArray message = BaseMessage::serialize();
     QDataStream dataStream(&message, QIODevice::Append);
     dataStream << fileContents << mMimeContent;
-    
+    // Delete from here on
+    QFile f("file.txt");
+    f.open(QFile::WriteOnly);
+    f.write(message);
+    f.close();
+    // Up to here
     return message;
 }
 
@@ -87,7 +96,7 @@ void FileMessage::deserialize(const QByteArray &message) {
 #ifdef Q_WS_X11
         mFilePaths.append(QUrl("file://" + qApp->applicationDirPath() + "/" + TEMP_FOLDER + "/" + fileNames[i]));
 #else
-        mFilePaths.append(qApp->applicationDirPath() + "/" + QUrl(TEMP_FOLDER + "/" + fileNames[i]));
+        mFilePaths.append(QUrl("file:///" + qApp->applicationDirPath() + "/" + TEMP_FOLDER + "/" + fileNames[i]));
 #endif
     }
     

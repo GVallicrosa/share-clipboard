@@ -175,119 +175,119 @@ void MainWindow::on_becomeServerBtn_clicked()
 }
 
 void MainWindow::receiveMessage(QByteArray msg) {
-    QDataStream dataStream(&msg, QIODevice::ReadOnly);
+//    QDataStream dataStream(&msg, QIODevice::ReadOnly);
 
-    // Read the content
-    QString type;
-    dataStream >> type;
+//    // Read the content
+//    QString type;
+//    dataStream >> type;
 
-    if (type == QString("image")) {
-        QImage img;
-        dataStream >> img;
-        mIsClient = true;
-        mClipboard->clear();
-        mIsClient = true;
-        mClipboard->setImage(img);
-    } else if(type == QString("files")) {
-        QList<QByteArray> fileContents;
-        QMap<QString, QByteArray> content;
-        dataStream >> fileContents >> content;
-        QByteArray fileNameList = content["text/uri-list"];
-        //Check if linux
-#ifdef Q_WS_X11
-        QRegExp sep("\r\n");
-        QList<QString> fileNameListSplitted = QString(QUrl::fromPercentEncoding(fileNameList)).split(sep, QString::SkipEmptyParts);
-        QList<QString> fileNames;
-        for (int i = 0; i < fileNameListSplitted.length(); ++i) {
-            QList<QString> pathBits = fileNameListSplitted[i].split('/');
-            fileNames.append(pathBits[pathBits.length()-1]);
-        }
-#endif
-#ifdef Q_WS_WIN
-        return ;
-#endif
-        // Create a file saver
-        QDir dir;
-        if (!dir.exists(".temp")) {
-            dir.mkdir(".temp");
-        } else {
-            dir.cd(".temp");
-            QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
-            foreach (QFileInfo filename, files) {
-                dir.remove(filename.fileName());
-            }
-        }
+//    if (type == QString("image")) {
+//        QImage img;
+//        dataStream >> img;
+//        mIsClient = true;
+//        mClipboard->clear();
+//        mIsClient = true;
+//        mClipboard->setImage(img);
+//    } else if(type == QString("files")) {
+//        QList<QByteArray> fileContents;
+//        QMap<QString, QByteArray> content;
+//        dataStream >> fileContents >> content;
+//        QByteArray fileNameList = content["text/uri-list"];
+//        //Check if linux
+//#ifdef Q_WS_X11
+//        QRegExp sep("\r\n");
+//        QList<QString> fileNameListSplitted = QString(QUrl::fromPercentEncoding(fileNameList)).split(sep, QString::SkipEmptyParts);
+//        QList<QString> fileNames;
+//        for (int i = 0; i < fileNameListSplitted.length(); ++i) {
+//            QList<QString> pathBits = fileNameListSplitted[i].split('/');
+//            fileNames.append(pathBits[pathBits.length()-1]);
+//        }
+//#endif
+//#ifdef Q_WS_WIN
+//        return ;
+//#endif
+//        // Create a file saver
+//        QDir dir;
+//        if (!dir.exists(".temp")) {
+//            dir.mkdir(".temp");
+//        } else {
+//            dir.cd(".temp");
+//            QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+//            foreach (QFileInfo filename, files) {
+//                dir.remove(filename.fileName());
+//            }
+//        }
 
-        // Have a list of file paths
-        QStringList filePaths;
-        for (int i = 0; i < fileContents.length(); i++) {
-            QFile file(qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
-            filePaths.append("file://" + qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
-            file.open(QIODevice::WriteOnly);
-            file.write(fileContents[i]);
-            file.close();
-        }
-        mMimeData = new QMimeData();
-        // traverse through it and fill the clipboard in!
-        // We also want to replace all the (without file:// and \r\n) paths that are found in
-        QStringList fileNameListTruncated = QString(fileNameList).split("\r\n", QString::SkipEmptyParts);
-        QByteArray purePath;
-        // If more than one file copied, combine them with \n
-        if (fileNameListTruncated.length() > 1) {
-            // Don't forget to remove the last new line
-            purePath = fileNameListTruncated.join("\n").toAscii();
-        } else {
-            purePath = fileNameListTruncated.join("").toAscii();
-        }
-        QMap<QString, QByteArray>::Iterator itr = content.begin();
-        for (; itr != content.end(); itr++) {
-            QString todoRemove = itr.key();
-            QByteArray todoRemove2 = itr.value();
-            if (itr.key() == QString("text/uri-list")) {
-                // Append files!
-#ifdef Q_WS_X11
-                mMimeData->setData(itr.key(), filePaths.join("\r\n").toAscii());
-#endif
-            } else if (((QByteArray) itr.value()).contains(purePath)) {
-#ifdef Q_WS_X11
-                // Replace the path and put it into clipboard
-                QByteArray tempByteArray = itr.value();
-                tempByteArray.replace(purePath, filePaths.join("\n").toAscii());
-                mMimeData->setData(itr.key(), tempByteArray);
-#endif
-            } else {
-                mMimeData->setData(itr.key(), itr.value());
-            }
-        }
-        mClipboard->setMimeData(mMimeData);
-    } else {
-        QMap<QString, QByteArray> content;
-        dataStream >> content;
+//        // Have a list of file paths
+//        QStringList filePaths;
+//        for (int i = 0; i < fileContents.length(); i++) {
+//            QFile file(qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
+//            filePaths.append("file://" + qApp->applicationDirPath() + "/.temp/" + QString(fileNames[i]));
+//            file.open(QIODevice::WriteOnly);
+//            file.write(fileContents[i]);
+//            file.close();
+//        }
+//        mMimeData = new QMimeData();
+//        // traverse through it and fill the clipboard in!
+//        // We also want to replace all the (without file:// and \r\n) paths that are found in
+//        QStringList fileNameListTruncated = QString(fileNameList).split("\r\n", QString::SkipEmptyParts);
+//        QByteArray purePath;
+//        // If more than one file copied, combine them with \n
+//        if (fileNameListTruncated.length() > 1) {
+//            // Don't forget to remove the last new line
+//            purePath = fileNameListTruncated.join("\n").toAscii();
+//        } else {
+//            purePath = fileNameListTruncated.join("").toAscii();
+//        }
+//        QMap<QString, QByteArray>::Iterator itr = content.begin();
+//        for (; itr != content.end(); itr++) {
+//            QString todoRemove = itr.key();
+//            QByteArray todoRemove2 = itr.value();
+//            if (itr.key() == QString("text/uri-list")) {
+//                // Append files!
+//#ifdef Q_WS_X11
+//                mMimeData->setData(itr.key(), filePaths.join("\r\n").toAscii());
+//#endif
+//            } else if (((QByteArray) itr.value()).contains(purePath)) {
+//#ifdef Q_WS_X11
+//                // Replace the path and put it into clipboard
+//                QByteArray tempByteArray = itr.value();
+//                tempByteArray.replace(purePath, filePaths.join("\n").toAscii());
+//                mMimeData->setData(itr.key(), tempByteArray);
+//#endif
+//            } else {
+//                mMimeData->setData(itr.key(), itr.value());
+//            }
+//        }
+//        mClipboard->setMimeData(mMimeData);
+//    } else {
+//        QMap<QString, QByteArray> content;
+//        dataStream >> content;
 
-        // traverse through it and fill the clipboard in!
-        QMap<QString, QByteArray>::Iterator itr = content.begin();
-        mIsClient = true;
+//        // traverse through it and fill the clipboard in!
+//        QMap<QString, QByteArray>::Iterator itr = content.begin();
+//        mIsClient = true;
 
-        mClipboard->clear();
-        mMimeData = new QMimeData();
-        // Qmimedata cannot be freed!
-        mMimeData->clear();
-        for (; itr != content.end(); itr++) {
-            mMimeData->setData(itr.key(),itr.value());
-        }
-        mIsClient = true;
-        mClipboard->setMimeData(mMimeData);
+//        mClipboard->clear();
+//        mMimeData = new QMimeData();
+//        // Qmimedata cannot be freed!
+//        mMimeData->clear();
+//        for (; itr != content.end(); itr++) {
+//            mMimeData->setData(itr.key(),itr.value());
+//        }
+//        mIsClient = true;
+//        mClipboard->setMimeData(mMimeData);
 
-        qWarning() << content;
-    }
+//        qWarning() << content;
+//    }
 
-#ifdef Q_WS_X11
-    QString cmd = QString("notify-send \"New Clipboard\" \"New data arrived\" -i " + qApp->applicationDirPath() + "/icon.png");
-    system(cmd.toStdString().c_str());
-#endif
-#ifdef Q_WS_WIN
-    mTray->showMessage("New Clipboard", "New data arrived");
-#endif
+//#ifdef Q_WS_X11
+//    QString cmd = QString("notify-send \"New Clipboard\" \"New data arrived\" -i " + qApp->applicationDirPath() + "/icon.png");
+//    system(cmd.toStdString().c_str());
+//#endif
+//#ifdef Q_WS_WIN
+//    mTray->showMessage("New Clipboard", "New data arrived");
+//#endif
 
 }
 
