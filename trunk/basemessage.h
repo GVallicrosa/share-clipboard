@@ -23,7 +23,7 @@ public:
 
     void setMimeContent(const QMimeData *mimeContent);
     void setMimeContent(const QMap<QString, QByteArray> &mimeContent);
-    const QMap<QString, QByteArray> & getMimeContent();
+    const QMap<QString, QByteArray> & getMimeContent() const;
 
     inline void setType(quint8 type) {
         mType = type;

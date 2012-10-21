@@ -11,6 +11,13 @@ void ClipboardClient::receiveCustomMessage(const CustomMessage &customMessage) {
     // Form a mimedata and store it in clipboard
     
     if (mClipboard) {
+        QMimeData *mimeData = new QMimeData();
+        QMap<QString, QByteArray> mimeContent = customMessage.getMimeContent();
+        QMap<QString, QByteArray>::iterator itr;
+        for (itr = mimeContent.begin(); itr != mimeContent.end(); itr++) {
+            mimeData->setData(itr.key(),itr.value());
+        }
+        mClipboard->setMimeData(mimeData);
         emit showMessage("New message arrived", "Received new clipboard content", 2000);
     }
 }

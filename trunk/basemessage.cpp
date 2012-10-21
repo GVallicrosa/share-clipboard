@@ -2,7 +2,7 @@
 
 BaseMessage::BaseMessage()
 {
-    mLength = (quint64) sizeof(mType);
+//    mLength = (quint64) sizeof(mType);
 }
 
 QByteArray BaseMessage::serialize() {
@@ -10,7 +10,7 @@ QByteArray BaseMessage::serialize() {
     // Write the type of the message on the bytearray
     QByteArray message;
     QDataStream dataStream(&message, QIODevice::WriteOnly);
-    dataStream << mLength << mType;
+    dataStream << mType;
     return message;
 }
 
@@ -39,7 +39,7 @@ void BaseMessage::setMimeContent(const QMap<QString, QByteArray> &mimeContent) {
     mMimeContent = QMap<QString,QByteArray>(mimeContent);
 }
 
-const QMap<QString, QByteArray> & BaseMessage::getMimeContent() {
+const QMap<QString, QByteArray> & BaseMessage::getMimeContent() const {
     return mMimeContent;
 }
 
