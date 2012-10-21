@@ -17,7 +17,11 @@ QByteArray FileMessage::serialize() {
     QList<QByteArray> fileContents;
     int length = mFilePaths.length();
     for (int i = 0; i < length; i++) {
-        QFile file(mFilePaths[i].toString());
+        QString filePath = mFilePaths[i].toString();
+        if (filePath.contains("file://")) {
+            filePath = filePath.remove("file://");
+        }
+        QFile file(filePath);
         if (!file.open(QFile::ReadOnly)) {
             qWarning() << "File could not be sent!";
         } else {
@@ -38,6 +42,7 @@ void FileMessage::deserialize(const QByteArray &message) {
     QList<QByteArray> fileContents;
     QByteArray msg(message);
     QDataStream dataStream(&msg, QIODevice::ReadOnly);
+    dataStream.skipRawData(sizeof(mType));
     dataStream >> fileContents >> mMimeContent;
 
     // Now we have the file(s), so go ahead, save it in the .temp folder
@@ -76,12 +81,28 @@ void FileMessage::deserialize(const QByteArray &message) {
     length = fileContents.length();
     for (int i = 0; i < length; i++) {
         QFile file(TEMP_FOLDER + "/" + fileNames[i]);
-        mFilePaths.append(TEMP_FOLDER + "/" + fileNames[i]);
         file.open(QFile::WriteOnly);
         file.write(fileContents[i]);
         file.close();
+#ifdef Q_WS_X11
+        mFilePaths.append(QUrl("file://" + qApp->applicationDirPath() + "/" + TEMP_FOLDER + "/" + fileNames[i]));
+#else
+        mFilePaths.append(qApp->applicationDirPath() + "/" + QUrl(TEMP_FOLDER + "/" + fileNames[i]));
+#endif
     }
-
+    
+    // First we go through all the data in the mimecontent
+    // and simplify it
+    for (itr = mMimeContent.begin(); itr != mMimeContent.end(); itr++) {
+        // Remove \0 and \r from the values
+        itr.value() = itr.value().replace("\0","");
+        itr.value() = itr.value().replace("\r","");
+        // And now replace the old paths with the new ones
+        for (int i = 0; i < filePathList.length(); i++) {
+            itr.value() = itr.value().replace(filePathList[i].toString().toAscii(), mFilePaths[i].toString().toAscii());
+        }
+    }
+    
 }
 
 QList<QUrl> FileMessage::getFilePaths() const
