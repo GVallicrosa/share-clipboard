@@ -36,8 +36,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mClipboardClient, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
     connect(this, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
     
-
-    
     // Save the icon if it does not exist
     mIcon = new QIcon(":/icons/icon_partners-325.png");
     if (!(QFile::exists("icon.png"))) {
@@ -144,9 +142,9 @@ void MainWindow::on_becomeServerBtn_clicked()
 {
     if (mMessageTransceiver) {
         disconnect(this, SIGNAL(connectTo(QString,QString)), mMessageTransceiver, SLOT(connectTo(QString,QString)));
-        disconnect(mMessageTransceiver, SIGNAL(receiveMessage(QByteArray)), this, SLOT(receiveMessage(QByteArray)));
+        disconnect(mMessageTransceiver, SIGNAL(receiveMessage(QByteArray)), mProtocolHandler, SLOT(receiveMessage(QByteArray)));
         disconnect(mMessageTransceiver, SIGNAL(connected()), this, SLOT(connected()));
-        disconnect(this, SIGNAL(sendMessage(QByteArray)), mMessageTransceiver, SLOT(sendMessage(QByteArray)));
+        disconnect(mProtocolHandler, SIGNAL(sendMessage(QByteArray)), mMessageTransceiver, SLOT(sendMessage(QByteArray)));
     }
     delete mMessageTransceiver;
     mMessageTransceiver = NULL;
@@ -171,9 +169,9 @@ void MainWindow::on_becomeServerBtn_clicked()
         ui->becomeServerBtn->setText("Become Server");
     }
     connect(this, SIGNAL(connectTo(QString,QString)), mMessageTransceiver, SLOT(connectTo(QString,QString)));
-    connect(mMessageTransceiver, SIGNAL(receiveMessage(QByteArray)), this, SLOT(receiveMessage(QByteArray)));
+    connect(mMessageTransceiver, SIGNAL(receiveMessage(QByteArray)), mProtocolHandler, SLOT(receiveMessage(QByteArray)));
     connect(mMessageTransceiver, SIGNAL(connected()), this, SLOT(connected()));
-    connect(this, SIGNAL(sendMessage(QByteArray)), mMessageTransceiver, SLOT(sendMessage(QByteArray)));
+    connect(mProtocolHandler, SIGNAL(sendMessage(QByteArray)), mMessageTransceiver, SLOT(sendMessage(QByteArray)));
 }
 
 void MainWindow::receiveMessage(QByteArray msg) {

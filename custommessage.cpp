@@ -7,12 +7,12 @@ CustomMessage::CustomMessage()
 
 QByteArray CustomMessage::serialize() {
     QByteArray message = BaseMessage::serialize();
-    QDataStream dataStream(&message, QIODevice::WriteOnly);
+    QDataStream dataStream(&message, QIODevice::Append);
     dataStream << mMimeContent;
     // After updating the message, go back to the beginning and update the size
-    mLength = (quint64)(message.length() - (quint64) sizeof(mLength));
-    dataStream.device()->seek(0);
-    dataStream << mLength;
+//    mLength = (quint64)(message.length() - (quint64) sizeof(mLength));
+//    dataStream.device()->seek(0);
+//    dataStream << mLength;
     return message;
 }
 
