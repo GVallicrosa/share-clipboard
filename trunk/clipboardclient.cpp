@@ -32,6 +32,7 @@ void ClipboardClient::receiveImageMessage(const ImageMessage &imageMessage) {
 void ClipboardClient::receiveFileMessage(const FileMessage &fileMessage) {
 
     if (mClipboard) {
+        qWarning() << fileMessage.getFilePaths();
         emit showMessage("New message arrived", "Received new file(s)", 2000);
     }
 }
@@ -47,7 +48,13 @@ void ClipboardClient::sendClipboard() {
         QImage imageData = qvariant_cast<QImage>(mData->imageData());
         emit sendImageMessage(imageData);
         emit showMessage("Shared Clipboard", "Image has been sent.", 2000);
-    } else {
+    } else if (mData->hasUrls()) {
+        // Get the file paths
+        QList<QUrl> filePaths = mData->urls();
+        emit sendFileMessage(filePaths,convertMimetoMap(mData));
+        emit showMessage("Shared Clipboard", "Files have been sent.", 2000);
+    } 
+    else {
         emit sendCustomMessage(convertMimetoMap(mData));
         emit showMessage("Shared Clipboard", "Clipboard has been sent.", 2000);
     }

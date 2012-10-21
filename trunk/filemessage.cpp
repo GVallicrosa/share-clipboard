@@ -12,31 +12,33 @@ QByteArray FileMessage::serialize() {
     if (mFilePaths.isEmpty()) {
         qWarning() << "File url is empty. Are you sure you should serialize it?";
     }
-
-
-//    mFile = new QFile(mFilePath);
-//    if (!mFile.open(QFile::ReadOnly)) {
-//        qWarning() << "File could not be read. It does not exist.";
-//    }
-//    QByteArray fileContent = mFile.readAll();
-//    mFile.close();
-
+    
+    // Reading the files
+    QList<QByteArray> fileContents;
+    int length = mFilePaths.length();
+    for (int i = 0; i < length; i++) {
+        QFile file(mFilePaths[i].toString());
+        if (!file.open(QFile::ReadOnly)) {
+            qWarning() << "File could not be sent!";
+        } else {
+            fileContents.append(file.readAll());
+        }
+        file.close();
+    }
+    
+    // We are now ready to serialize all the files we have!
     QByteArray message = BaseMessage::serialize();
-    QDataStream dataStream(&message, QIODevice::WriteOnly);
-    // Serialize the mime content
-//    dataStream << fileContent << mMimeContent;
-    // After updating the message, go back to the beginning and update the size
-    mLength = (quint64)(message.length() - (quint64) sizeof(mLength));
-    dataStream.device()->seek(0);
-    dataStream << mLength;
+    QDataStream dataStream(&message, QIODevice::Append);
+    dataStream << fileContents << mMimeContent;
+    
     return message;
 }
 
 void FileMessage::deserialize(const QByteArray &message) {
-    QByteArray fileContent;
+    QList<QByteArray> fileContents;
     QByteArray msg(message);
     QDataStream dataStream(&msg, QIODevice::ReadOnly);
-    dataStream >> fileContent >> mMimeContent;
+    dataStream >> fileContents >> mMimeContent;
 
     // Now we have the file(s), so go ahead, save it in the .temp folder
 
@@ -44,14 +46,45 @@ void FileMessage::deserialize(const QByteArray &message) {
     QDir dir = QDir();
     if (!dir.exists(TEMP_FOLDER)) {
         dir.mkdir(TEMP_FOLDER);
+    } else {
+        // Clean inside the folder
+        dir.cd(TEMP_FOLDER);
+        QFileInfoList files = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::Files);
+        foreach (QFileInfo filename, files) {
+            dir.remove(filename.fileName());
+        }
     }
 
     // Get the file name(s)
-
+    QMimeData *mimeData = new QMimeData();
+    QMap<QString, QByteArray>::iterator itr;
+    for (itr = mMimeContent.begin(); itr != mMimeContent.end(); itr++) {
+        mimeData->setData(itr.key(),itr.value());
+    }
+    
+    // Here we have the paths
+    QList<QUrl> filePathList = mimeData->urls();
+    QStringList fileNames;
+    int length = filePathList.length();
+    for (int i = 0; i < length; i++) {
+        QString filePath = filePathList[i].toString();
+        QStringList filePathParts = filePath.split("/",QString::SkipEmptyParts);
+        fileNames.append(filePathParts[filePathParts.length()-1]);
+    }
+    
+    // Now we have the file names, we can save the files
+    length = fileContents.length();
+    for (int i = 0; i < length; i++) {
+        QFile file(TEMP_FOLDER + "/" + fileNames[i]);
+        mFilePaths.append(TEMP_FOLDER + "/" + fileNames[i]);
+        file.open(QFile::WriteOnly);
+        file.write(fileContents[i]);
+        file.close();
+    }
 
 }
 
-QList<QUrl> FileMessage::getFilePaths()
+QList<QUrl> FileMessage::getFilePaths() const
 {
     return mFilePaths;
 }
@@ -64,3 +97,4 @@ void FileMessage::setFilePath(QUrl filePath) {
 void FileMessage::setFilePaths(QList<QUrl> filePaths) {
     mFilePaths = QList<QUrl>(filePaths);
 }
+

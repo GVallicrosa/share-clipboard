@@ -15,7 +15,7 @@ public:
     QByteArray serialize();
     void deserialize(const QByteArray & message);
 
-    QList<QUrl> getFilePaths();
+    QList<QUrl> getFilePaths() const;
     void setFilePaths(QList<QUrl> filePaths);
     void setFilePath(QUrl filePath);
 
