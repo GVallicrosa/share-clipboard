@@ -20,8 +20,11 @@ public:
     void setFilePaths(QList<QUrl> filePaths);
     void setFilePath(QUrl filePath);
 
-
 protected:
+    
+    QByteArray removeOccurences(const QByteArray & byteArray, char c);
+    
+    
     QList<QUrl> mFilePaths;
 };
 

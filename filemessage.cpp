@@ -104,8 +104,8 @@ void FileMessage::deserialize(const QByteArray &message) {
     // and simplify it
     for (itr = mMimeContent.begin(); itr != mMimeContent.end(); itr++) {
         // Remove \0 and \r from the values
-        itr.value() = itr.value().replace("\0","");
-        itr.value() = itr.value().replace("\r","");
+        itr.value() = removeOccurences(itr.value(), '\0');
+        itr.value() = removeOccurences(itr.value(), '\r');
         // And now replace the old paths with the new ones
         for (int i = 0; i < filePathList.length(); i++) {
             itr.value() = itr.value().replace(filePathList[i].toString().toAscii(), mFilePaths[i].toString().toAscii());
@@ -128,3 +128,14 @@ void FileMessage::setFilePaths(QList<QUrl> filePaths) {
     mFilePaths = QList<QUrl>(filePaths);
 }
 
+QByteArray FileMessage::removeOccurences(const QByteArray & byteArray, char c) {
+    QByteArray newArray;
+    int length = byteArray.length();
+    // Erase all c from byteArray
+    for (int i = 0; i < length; i++) {
+        if (byteArray[i] != c) {
+            newArray.append(byteArray[i]);
+        }
+    }
+    return newArray;
+}
