@@ -144,6 +144,11 @@ void MessageTransceiver::connectTo(QString ipAddress, QString portNumber) {
     }
 }
 
+quint16 MessageTransceiver::getPort()
+{
+    return mTcpSocket ? mTcpSocket->peerPort() : -1;
+}
+
 void MessageTransceiver::sendMessage(QByteArray data) {
     QByteArray msg;
     QDataStream out(&msg, QIODevice::WriteOnly);
