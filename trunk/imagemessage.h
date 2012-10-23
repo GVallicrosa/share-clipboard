@@ -2,6 +2,7 @@
 #define IMAGEMESSAGE_H
 
 #include "basemessage.h"
+#include <QPainter>
 
 #include <QImage>
 
