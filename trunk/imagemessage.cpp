@@ -26,7 +26,10 @@ void ImageMessage::deserialize(const QByteArray & message) {
 
 void ImageMessage::setImage(const QImage &img) {
     // Copy the image
-    mImage = QImage(img);
+    mImage = QImage(img.size());
+    mImage.fill(Qt::white);
+    QPainter painter(&mImage);
+    painter.drawImage(0,0,img);
 }
 
 const QImage &ImageMessage::getImage() const{
