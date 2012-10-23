@@ -9,6 +9,13 @@
 #include "notificationwindow.h"
 #include <QSystemTrayIcon>
 #include <QKeyEvent>
+#include <QHostInfo>
+
+#include "avahi/bonjourrecord.h"
+
+class BonjourServiceRegister;
+class BonjourServiceBrowser;
+class BonjourServiceResolver;
 
 namespace Ui {
 class MainWindow;
@@ -38,6 +45,13 @@ private slots:
 
     void on_becomeServerBtn_clicked();
 
+    void on_connectButtonZeroconf_clicked();
+
+    void on_becomeServerBtnZeroconf_clicked();
+
+    void updateRecords(const QList<BonjourRecord> &list);
+    void connectToServer(const QHostInfo & hostInfo, int portNumber);
+
 private:
     Ui::MainWindow *ui;
     QClipboard *mClipboard;
@@ -54,6 +68,9 @@ private:
     QString mAppPath;
     NotificationWindow *mNotify;
 
+    BonjourServiceRegister *bonjourRegister;
+    BonjourServiceBrowser  *bonjourBrowser;
+    BonjourServiceResolver *bonjourResolver;
 };
 
 #endif // MAINWINDOW_H

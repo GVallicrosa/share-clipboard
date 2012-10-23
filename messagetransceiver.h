@@ -38,6 +38,7 @@ public slots:
     void sendMessage(QByteArray data);
     void newConnection();
     void connectTo(QString ipAddress, QString portNumber);
+    quint16 getPort();
     void readyRead();
     void disconnected();
 

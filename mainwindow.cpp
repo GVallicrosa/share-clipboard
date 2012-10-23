@@ -14,6 +14,11 @@
 #include "filemessage.h"
 #include "custommessage.h"
 
+#include "avahi/bonjourserviceregister.h"
+#include "avahi/bonjourservicebrowser.h"
+#include "avahi/bonjourserviceresolver.h"
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -57,6 +62,30 @@ MainWindow::MainWindow(QWidget *parent) :
     QxtGlobalShortcut* shortcut = new QxtGlobalShortcut(this);
     connect(shortcut, SIGNAL(activated()), mClipboardClient, SLOT(sendClipboard()));
     shortcut->setShortcut(QKeySequence("Ctrl+Shift+C"));
+
+#ifdef ZEROCONF
+    qDebug("ZEROCONF");
+//    ui->tabWidget->removeTab(0);
+    ui->tabWidget->setCurrentIndex(1);
+
+    bonjourBrowser = new BonjourServiceBrowser(this);
+
+    connect( bonjourBrowser, SIGNAL(currentBonjourRecordsChanged(const QList<BonjourRecord> &)),
+             this, SLOT(updateRecords(const QList<BonjourRecord> &)) );
+
+    bonjourBrowser->browseForServiceType(QLatin1String("_shareClipboard._tcp"));
+
+    ui->serverList->setFocus();
+
+    bonjourResolver = new BonjourServiceResolver(this);
+    connect( bonjourResolver, SIGNAL(bonjourRecordResolved(const QHostInfo &, int)),
+             this, SLOT(connectToServer(const QHostInfo &, int)) );
+
+#else
+    qDebug("NO ZEROCONF");
+    ui->tabWidget->removeTab(1);
+//    ui->tabWidget->setCurrentIndex(0);
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -302,3 +331,71 @@ void MainWindow::connected() {
     setHidden(true);
 }
 
+
+void MainWindow::on_connectButtonZeroconf_clicked()
+{
+//#ifdef ZEROCONF
+    QList<QTreeWidgetItem *> selectedItems = ui->serverList->selectedItems();
+    if (selectedItems.isEmpty())
+        return;
+
+    QTreeWidgetItem *item = selectedItems.at(0);
+    QVariant variant = item->data(0, Qt::UserRole);
+    bonjourResolver->resolveBonjourRecord(variant.value<BonjourRecord>());
+//#endif
+}
+
+void MainWindow::on_becomeServerBtnZeroconf_clicked()
+{    
+    on_becomeServerBtn_clicked();
+
+//#ifdef ZEROCONF
+    bonjourRegister = new BonjourServiceRegister(this);
+    if (!bonjourRegister) {
+        QMessageBox::critical(this, tr("shareClipboard Server"), tr("Unable to start the server"));
+        close();
+        return;
+    }
+
+    BonjourRecord record( tr("shareClipboard on %1 - port: %2").arg(QHostInfo::localHostName()).arg(mMessageTransceiver->getPort()),
+                          QLatin1String("_shareClipboard._tcp"), QString() );
+
+    bonjourRegister->registerService( record, TCP_PORT );
+//#endif
+}
+
+void MainWindow::updateRecords(const QList<BonjourRecord> &list)
+{
+    ui->serverList->clear();
+
+    //qDebug("list %d\n", list.size());  // FixMe: it enters two times!
+
+    foreach (BonjourRecord record, list) {
+        QVariant variant;
+        variant.setValue(record);
+        QTreeWidgetItem *processItem = new QTreeWidgetItem( ui->serverList,
+                                                            QStringList() << record.serviceName );
+        processItem->setData(0, Qt::UserRole, variant);
+    }
+
+    if( ui->serverList->invisibleRootItem()->childCount() > 0 ) {
+        ui->serverList->invisibleRootItem()->child(0)->setSelected(true);
+        ui->connectButtonZeroconf->setEnabled(true);
+        ui->becomeServerBtnZeroconf->setEnabled(false);
+    }
+    else {
+        ui->connectButtonZeroconf->setEnabled(false);
+        ui->becomeServerBtnZeroconf->setEnabled(true);
+    }
+}
+
+
+void MainWindow::connectToServer(const QHostInfo &hostInfo, int portNumber)
+{
+    const QList<QHostAddress> &ipAddress = hostInfo.addresses();
+    if (!ipAddress.isEmpty())
+        emit connectTo(ipAddress.first().toString(), QString::number(portNumber));
+
+//    ui->ipAddressEdit->setText(ipAddress);
+//    ui->portNumberEdit->setText(portNumber);
+}
