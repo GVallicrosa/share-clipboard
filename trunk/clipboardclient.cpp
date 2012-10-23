@@ -40,6 +40,7 @@ void ClipboardClient::receiveFileMessage(const FileMessage &fileMessage) {
         }
         mClipboard->setMimeData(mimeData);
         emit showMessage("New message arrived", "Received new file(s)", 2000);
+        qWarning() << mimeContent;
     }
 }
 
@@ -54,7 +55,7 @@ void ClipboardClient::sendClipboard() {
         QImage imageData = qvariant_cast<QImage>(mData->imageData());
         emit sendImageMessage(imageData);
         emit showMessage("Shared Clipboard", "Image has been sent.", 2000);
-    } else if (mData->hasUrls()) {
+    } else if (mData->hasUrls() && mData->urls()[0].toString().contains("file://")) {
         // Get the file paths
         QList<QUrl> filePaths = mData->urls();
         emit sendFileMessage(filePaths,convertMimetoMap(mData));
