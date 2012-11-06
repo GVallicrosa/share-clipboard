@@ -48,7 +48,7 @@ OTHER_FILES += \
 ## Zeroconf
 ###########
 
-# Dependencies: "libavahi-compat-libdnssd1" package
+# Dependencies: "libavahi-compat-libdnssd-dev" package
 
 #
 # qmake -config zeroconf
