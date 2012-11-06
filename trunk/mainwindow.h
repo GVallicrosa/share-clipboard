@@ -11,11 +11,13 @@
 #include <QKeyEvent>
 #include <QHostInfo>
 
+#ifdef ZEROCONF
 #include "avahi/bonjourrecord.h"
 
 class BonjourServiceRegister;
 class BonjourServiceBrowser;
 class BonjourServiceResolver;
+#endif // ZEROCONF
 
 namespace Ui {
 class MainWindow;
@@ -45,12 +47,12 @@ private slots:
 
     void on_becomeServerBtn_clicked();
 
+#ifdef ZEROCONF
     void on_connectButtonZeroconf_clicked();
-
     void on_becomeServerBtnZeroconf_clicked();
-
     void updateRecords(const QList<BonjourRecord> &list);
     void connectToServer(const QHostInfo & hostInfo, int portNumber);
+#endif // ZEROCONF
 
 private:
     Ui::MainWindow *ui;
@@ -68,9 +70,11 @@ private:
     QString mAppPath;
     NotificationWindow *mNotify;
 
+#ifdef ZEROCONF
     BonjourServiceRegister *bonjourRegister;
     BonjourServiceBrowser  *bonjourBrowser;
     BonjourServiceResolver *bonjourResolver;
+#endif // ZEROCONF
 };
 
 #endif // MAINWINDOW_H

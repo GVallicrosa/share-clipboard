@@ -14,9 +14,11 @@
 #include "filemessage.h"
 #include "custommessage.h"
 
+#ifdef ZEROCONF
 #include "avahi/bonjourserviceregister.h"
 #include "avahi/bonjourservicebrowser.h"
 #include "avahi/bonjourserviceresolver.h"
+#endif // ZEROCONF
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -332,9 +334,11 @@ void MainWindow::connected() {
 }
 
 
+
+#ifdef ZEROCONF
+
 void MainWindow::on_connectButtonZeroconf_clicked()
 {
-//#ifdef ZEROCONF
     QList<QTreeWidgetItem *> selectedItems = ui->serverList->selectedItems();
     if (selectedItems.isEmpty())
         return;
@@ -342,14 +346,12 @@ void MainWindow::on_connectButtonZeroconf_clicked()
     QTreeWidgetItem *item = selectedItems.at(0);
     QVariant variant = item->data(0, Qt::UserRole);
     bonjourResolver->resolveBonjourRecord(variant.value<BonjourRecord>());
-//#endif
 }
 
 void MainWindow::on_becomeServerBtnZeroconf_clicked()
 {    
     on_becomeServerBtn_clicked();
 
-//#ifdef ZEROCONF
     bonjourRegister = new BonjourServiceRegister(this);
     if (!bonjourRegister) {
         QMessageBox::critical(this, tr("shareClipboard Server"), tr("Unable to start the server"));
@@ -361,8 +363,8 @@ void MainWindow::on_becomeServerBtnZeroconf_clicked()
                           QLatin1String("_shareClipboard._tcp"), QString() );
 
     bonjourRegister->registerService( record, TCP_PORT );
-//#endif
 }
+
 
 void MainWindow::updateRecords(const QList<BonjourRecord> &list)
 {
@@ -399,3 +401,5 @@ void MainWindow::connectToServer(const QHostInfo &hostInfo, int portNumber)
 //    ui->ipAddressEdit->setText(ipAddress);
 //    ui->portNumberEdit->setText(portNumber);
 }
+
+#endif // ZEROCONF
