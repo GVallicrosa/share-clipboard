@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //#ifdef Q_WS_WIN
         mTray = new QSystemTrayIcon(*mIcon,this);
         mTray->show();
+        setWindowIcon(*mIcon);
     //#endif
 
     mAppPath = qApp->applicationDirPath();
