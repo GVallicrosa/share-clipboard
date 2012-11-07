@@ -44,20 +44,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
     
     // Save the icon if it does not exist
-    mIcon = new QIcon(":/icons/icon_partners-325.png");
-    if (!(QFile::exists("icon.png"))) {
+    mIcon = new QIcon("clipshare.svg");
+    /*if (!(QFile::exists("clipshare.svg"))) {
         qWarning() << "The file does not exist!" ;
-        QImage img(":/icons/icon_partners-325.png");
+        QImage img(":/icons/clipshare.svg");
         if (img.isNull()) {
             qWarning() << "iamge could not be loaded";
         }
-        img.save("icon.png");
-    }
+        img.save("clipshare.svg");
+    }*/
 
-    #ifdef Q_WS_WIN
+    //#ifdef Q_WS_WIN
         mTray = new QSystemTrayIcon(*mIcon,this);
         mTray->show();
-    #endif
+    //#endif
 
     mAppPath = qApp->applicationDirPath();
 
