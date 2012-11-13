@@ -66,6 +66,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(shortcut, SIGNAL(activated()), mClipboardClient, SLOT(sendClipboard()));
     shortcut->setShortcut(QKeySequence("Ctrl+Shift+C"));
 
+    QxtGlobalShortcut* shortcutRecover = new QxtGlobalShortcut(this);
+    connect(shortcutRecover, SIGNAL(activated()), mClipboardClient, SLOT(recoverClipboard()));
+    shortcutRecover->setShortcut(QKeySequence("Ctrl+Shift+Z"));
+
 #ifdef ZEROCONF
     qDebug("ZEROCONF");
 //    ui->tabWidget->removeTab(0);
