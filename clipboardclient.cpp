@@ -4,12 +4,11 @@ ClipboardClient::ClipboardClient(QObject *parent):
     QObject(parent) {
     mClipboard = 0;
     mProtocolHandler = 0;
+    mSavedClipboardMimeData = 0;
 }
 
 void ClipboardClient::receiveCustomMessage(const CustomMessage &customMessage) {
-    // TODO
-    // Form a mimedata and store it in clipboard
-    
+    saveCurrentClipboard();
     if (mClipboard) {
         QMimeData *mimeData = new QMimeData();
         QMap<QString, QByteArray> mimeContent = customMessage.getMimeContent();
@@ -23,6 +22,7 @@ void ClipboardClient::receiveCustomMessage(const CustomMessage &customMessage) {
 }
 
 void ClipboardClient::receiveImageMessage(const ImageMessage &imageMessage) {
+    saveCurrentClipboard();
     if (mClipboard) {
         mClipboard->setImage(imageMessage.getImage());
         emit showMessage("New message arrived", "Received new image", 2000);
@@ -30,7 +30,7 @@ void ClipboardClient::receiveImageMessage(const ImageMessage &imageMessage) {
 }
 
 void ClipboardClient::receiveFileMessage(const FileMessage &fileMessage) {
-
+    saveCurrentClipboard();
     if (mClipboard) {
         QMimeData *mimeData = new QMimeData();
         QMap<QString, QByteArray> mimeContent = fileMessage.getMimeContent();
@@ -115,5 +115,32 @@ void ClipboardClient::setProtocolHandler(ProtocolHandler *protocolHandler) {
     }
     mProtocolHandler = protocolHandler;
     connectProtocolHandlerSignals();
+}
+
+void ClipboardClient::saveCurrentClipboard() {
+    if(mSavedClipboardMimeData) delete mSavedClipboardMimeData;
+
+    // Save the data from the clipboard to our own mimedata
+    mSavedClipboardMimeData = new QMimeData();
+    QStringList formats = mClipboard->mimeData()->formats();
+    int size = formats.size();
+    for (int i = 0 ; i < size; i++) {
+        mSavedClipboardMimeData->setData(formats[i], mClipboard->mimeData()->data(formats[i]));
+    }
+}
+
+void ClipboardClient::recoverClipboard() {
+    // If there has been a clipboard saved before, then recover it
+    if (mSavedClipboardMimeData) {
+        int size = mSavedClipboardMimeData->formats().size();
+        QStringList formats = mSavedClipboardMimeData->formats();
+        // Copy each elements of the previous clipboard
+        QMimeData *mimeData = new QMimeData();
+        for (int i = 0; i < size; i++) {
+            mimeData->setData(formats[i], mSavedClipboardMimeData->data(formats[i]));
+        }
+        mClipboard->setMimeData(mimeData);
+    }
+    emit showMessage("Recovered Clipboard", "Recovered clipboard to its previous state", 2000);
 }
 
