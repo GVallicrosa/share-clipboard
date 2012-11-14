@@ -108,10 +108,15 @@ void FileMessage::deserialize(const QByteArray &message) {
         itr.value() = removeOccurences(itr.value(), '\r');
         // And now replace the old paths with the new ones
         for (int i = 0; i < filePathList.length(); i++) {
-            itr.value() = itr.value().replace(filePathList[i].toString().toAscii(), mFilePaths[i].toString().toAscii());
+            itr.value() = itr.value().replace(filePathList[i].toString().toAscii(), mFilePaths[i].toString().toAscii()); 
         }
     }
-    
+    // Temporary solution, add the tags manually of all platforms just in case
+    // (-_-)))))^))))
+    // Ubuntu
+    mMimeContent.insert("x-special/gnome-copied-files", mMimeContent.values().at(mMimeContent.size()-1));
+
+
 }
 
 QList<QUrl> FileMessage::getFilePaths() const
