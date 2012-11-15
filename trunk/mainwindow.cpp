@@ -43,22 +43,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mClipboardClient, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
     connect(this, SIGNAL(showMessage(QString,QString,quint32)), mNotify, SLOT(showMessage(QString,QString,quint32)));
     
-    // Save the icon if it does not exist
-    mIcon = new QIcon("clipshare.svg");
-    /*if (!(QFile::exists("clipshare.svg"))) {
-        qWarning() << "The file does not exist!" ;
-        QImage img(":/icons/clipshare.svg");
-        if (img.isNull()) {
-            qWarning() << "iamge could not be loaded";
-        }
-        img.save("clipshare.svg");
-    }*/
+    // Get the application icon from resources
+    mIcon = new QIcon(":/icons/clipshare.svg");
 
-    //#ifdef Q_WS_WIN
-        mTray = new QSystemTrayIcon(*mIcon,this);
-        mTray->show();
-        setWindowIcon(*mIcon);
-    //#endif
+    // Create a system tray icon
+    mTray = new QSystemTrayIcon(*mIcon,this);
+    mTray->show();
+    setWindowIcon(*mIcon);
 
     mAppPath = qApp->applicationDirPath();
 
