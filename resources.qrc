@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>icons/icon_partners-325.png</file>
         <file>NotificationQml.qml</file>
+        <file>icons/clipshare.svg</file>
     </qresource>
 </RCC>
