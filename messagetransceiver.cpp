@@ -71,6 +71,12 @@ MessageTransceiver::~MessageTransceiver() {
     if (mTcpSocket) {
         mTcpSocket->close();
     }
+    
+    // Remove the client sockets
+    while(!mSockets.empty()) {
+        delete mSockets.back();
+        mSockets.pop_back();
+    }
 }
 
 void MessageTransceiver::sessionOpened()
@@ -91,13 +97,12 @@ void MessageTransceiver::sessionOpened()
             settings.endGroup();
         }
 
-    //! [0] //! [1]
         mTcpServer = new QTcpServer(this);
         if (!mTcpServer->listen(QHostAddress::Any, TCP_PORT)) {
             qWarning() << "it ain't working";
             return;
         }
-    //! [0]
+        
         QString ipAddress;
         QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
         // use the first non-localhost IPv4 address
@@ -130,11 +135,13 @@ void MessageTransceiver::sessionOpened()
 }
 
 void MessageTransceiver::newConnection() {
-    
-    mTcpSocket = mTcpServer->nextPendingConnection();
+    //We are the server, so we use the vector instead
+    QTcpSocket *tcpSocket = (mTcpServer->nextPendingConnection());
+    mSockets.push_back(tcpSocket);
+//    mTcpSocket = mTcpServer->nextPendingConnection();
     emit connected();
-    connect(mTcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
-    connect(mTcpSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
+    connect(tcpSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
 }
 
 void MessageTransceiver::connectTo(QString ipAddress, QString portNumber) {
@@ -153,27 +160,61 @@ void MessageTransceiver::sendMessage(QByteArray data) {
     QByteArray msg;
     QDataStream out(&msg, QIODevice::WriteOnly);
     out << (quint64)data.size() << data;
-    if (mTcpSocket)
-        mTcpSocket->write(msg);
+    
+    // IF we are client, we send it simply to the server
+    if (mIsClient) {
+        if (mTcpSocket)
+            mTcpSocket->write(msg);
+    } else {
+        // Server has to send to all clients
+        QVector<QTcpSocket *>::iterator itr;
+        for (itr = mSockets.begin(); itr != mSockets.end(); itr++) {
+            (*itr)->write(msg);
+        }
+    }
+}
+
+void MessageTransceiver::sendMessageExcept(QByteArray data, const QHostAddress &client ) {
+    QByteArray msg;
+    QDataStream out(&msg, QIODevice::WriteOnly);
+    out << (quint64)data.size() << data;
+    
+    // IF we are client, we send it simply to the server
+    if (mIsClient) {
+        if (mTcpSocket)
+            mTcpSocket->write(msg);
+    } else {
+        // Server has to send to all clients
+        QVector<QTcpSocket*>::iterator itr;
+        for (itr = mSockets.begin(); itr != mSockets.end(); itr++) {
+            if ((*itr)->peerAddress() != client)
+                (*itr)->write(msg);
+        }
+    }
 }
 
 void MessageTransceiver::readyRead() {
-    QDataStream in(mTcpSocket);
+    QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
+    QDataStream in(client);
     // We are reading the clipboard of the other end!
     if (mBlockSize == 0) {
-        if (mTcpSocket->bytesAvailable() < (int)sizeof(quint64)) {
+        if (client->bytesAvailable() < (int)sizeof(quint64)) {
             return ;
         }
         in >> mBlockSize;
     }
 
-    if (mTcpSocket->bytesAvailable() < mBlockSize) {
+    if (client->bytesAvailable() < mBlockSize) {
         return;
     }
 
     QByteArray msg;
     in >> msg;
     mBlockSize = 0;
+    // If we are the server, we have to send the received message to everyone else (except the one who sends it!)
+    if (!mIsClient) {
+        sendMessageExcept(msg,client->peerAddress());
+    }
     emit receiveMessage(msg);
 }
 
@@ -181,6 +222,18 @@ void MessageTransceiver::disconnected() {
     if (mTcpSocket) {
         disconnect(mTcpSocket, SIGNAL(readyRead()), this, SLOT(readyRead()));
         disconnect(mTcpSocket, SIGNAL(disconnected()), this, SLOT(disconnected()));
+    } else if (!mIsClient) {
+        QTcpSocket *client = qobject_cast<QTcpSocket*>(sender());
+        QVector<QTcpSocket *>::iterator itr;
+        for (itr = mSockets.begin(); itr != mSockets.end(); itr++) {
+            if ((*itr)->peerAddress() == client->peerAddress()) {
+                // Client is disconnected, remove it
+                delete (*itr);
+                (*itr) = NULL;
+                mSockets.erase(itr);
+                break;
+            }
+        }
     }
     // TODO emit a message that the user is disconnected
 }
