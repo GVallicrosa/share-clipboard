@@ -36,6 +36,7 @@ signals:
 
 public slots:
     void sendMessage(QByteArray data);
+    void sendMessageExcept(QByteArray data, const QHostAddress &client);
     void newConnection();
     void connectTo(QString ipAddress, QString portNumber);
     quint16 getPort();
@@ -49,6 +50,9 @@ private:
     QByteArray mReceivedData;
     quint64 mBlockSize;
     bool mIsClient;
+    
+    // Needed if we are the server
+    QVector<QTcpSocket *> mSockets;
 
     QMap<QString, QString> mPeers;
 };
