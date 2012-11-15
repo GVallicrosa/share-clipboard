@@ -7,6 +7,7 @@
 #include "clipboardclient.h"
 #include "protocolhandler.h"
 #include "notificationwindow.h"
+#include <QxtGlobalShortcut>
 #include <QSystemTrayIcon>
 #include <QKeyEvent>
 #include <QHostInfo>
@@ -42,10 +43,9 @@ public slots:
     void connected();
     
 private slots:
-
     void on_connectButton_clicked();
-
     void on_becomeServerBtn_clicked();
+    void toggleVisibility();
 
 #ifdef ZEROCONF
     void on_connectButtonZeroconf_clicked();
@@ -69,6 +69,10 @@ private:
     QIcon *mIcon;
     QString mAppPath;
     NotificationWindow *mNotify;
+    
+    QxtGlobalShortcut *mShareShortcut;
+    QxtGlobalShortcut *mRecoverShortcut;
+    QxtGlobalShortcut *mUnhideShortcut;
 
 #ifdef ZEROCONF
     BonjourServiceRegister *bonjourRegister;

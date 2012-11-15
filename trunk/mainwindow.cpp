@@ -5,7 +5,6 @@
 #include "messagetransceiver.h"
 #include <QFile>
 #include <QProcess>
-#include <QxtGlobalShortcut>
 #include <QDir>
 #include <QUrl>
 #include <QDeclarativeView>
@@ -53,13 +52,19 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mAppPath = qApp->applicationDirPath();
 
-    QxtGlobalShortcut* shortcut = new QxtGlobalShortcut(this);
-    connect(shortcut, SIGNAL(activated()), mClipboardClient, SLOT(sendClipboard()));
-    shortcut->setShortcut(QKeySequence("Ctrl+Shift+C"));
+    
+    // Set the shortcuts
+    mShareShortcut = new QxtGlobalShortcut(this);
+    connect(mShareShortcut, SIGNAL(activated()), mClipboardClient, SLOT(sendClipboard()));
+    mShareShortcut->setShortcut(QKeySequence("Ctrl+Shift+C"));
 
-    QxtGlobalShortcut* shortcutRecover = new QxtGlobalShortcut(this);
-    connect(shortcutRecover, SIGNAL(activated()), mClipboardClient, SLOT(recoverClipboard()));
-    shortcutRecover->setShortcut(QKeySequence("Ctrl+Shift+Z"));
+    mRecoverShortcut = new QxtGlobalShortcut(this);
+    connect(mRecoverShortcut, SIGNAL(activated()), mClipboardClient, SLOT(recoverClipboard()));
+    mRecoverShortcut->setShortcut(QKeySequence("Ctrl+Shift+Z"));
+    
+    mUnhideShortcut = new QxtGlobalShortcut(this);
+    connect(mUnhideShortcut, SIGNAL(activated()), this, SLOT(toggleVisibility()));
+    mUnhideShortcut->setShortcut(QKeySequence("Ctrl+Shift+H"));
 
 #ifdef ZEROCONF
     qDebug("ZEROCONF");
@@ -396,6 +401,14 @@ void MainWindow::connectToServer(const QHostInfo &hostInfo, int portNumber)
 
 //    ui->ipAddressEdit->setText(ipAddress);
 //    ui->portNumberEdit->setText(portNumber);
+}
+
+void MainWindow::toggleVisibility() {
+    if (isHidden()) {
+        show();
+    } else {
+        hide();
+    }
 }
 
 #endif // ZEROCONF
