@@ -334,7 +334,13 @@ void MainWindow::connected() {
     setHidden(true);
 }
 
-
+void MainWindow::toggleVisibility() {
+    if (isHidden()) {
+        show();
+    } else {
+        hide();
+    }
+}
 
 #ifdef ZEROCONF
 
@@ -402,13 +408,4 @@ void MainWindow::connectToServer(const QHostInfo &hostInfo, int portNumber)
 //    ui->ipAddressEdit->setText(ipAddress);
 //    ui->portNumberEdit->setText(portNumber);
 }
-
-void MainWindow::toggleVisibility() {
-    if (isHidden()) {
-        show();
-    } else {
-        hide();
-    }
-}
-
 #endif // ZEROCONF
