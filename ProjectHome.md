@@ -1,0 +1,1 @@
+A cross platform application which enables users to share their clipboards over local area network.
